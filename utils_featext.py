@@ -2,7 +2,7 @@ import os
 import sys
 import numpy as np
 import keras
-import models
+import models_transfer
 # import arg_parser
 from argparse import Namespace
 import pandas as pd

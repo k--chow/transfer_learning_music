@@ -13,7 +13,7 @@ font = {'family': 'consolas',
         'size': 12}
 
 matplotlib.rc('font', **font)
-ggplot_colors = [plt.rcParams['axes.color_cycle'][i] for i in [0, 1, 2, 3, 4, 5, 6]]
+#ggplot_colors = [plt.rcParams['axes.color_cycle'][i] for i in [0, 1, 2, 3, 4, 5, 6]]
 
 import os
 import sys
@@ -74,8 +74,9 @@ def load_xy(task_name, feat_name='mine', npy_suffix='', logger=None, mid_layer=4
     :param mid_layer: ignired if 'mfcc' is used
     :return:
     """
-    assert task_name in ('ballroom_extended', 'gtzan_genre', 'gtzan_speechmusic',
-                         'emoMusic_a', 'emoMusic_v', 'jamendo_vd', 'urbansound')
+    assert task_name in ('gtzan_genre', 'gtzan_speechmusic')
+    #assert task_name in ('ballroom_extended', 'gtzan_genre', 'gtzan_speechmusic',
+    #                     'emoMusic_a', 'emoMusic_v', 'jamendo_vd', 'urbansound')
     # logger.info('load_xy({}, {}, mid_layer: {}, npy_suffix: {})...'.format(task_name, feat_name, mid_layer, npy_suffix))
 
     # X
@@ -101,14 +102,14 @@ def load_xy(task_name, feat_name='mine', npy_suffix='', logger=None, mid_layer=4
     # Y
     if task_name == 'emoMusic_v':
         csv_filename = '{}.csv'.format('emoMusic')
-        df = pd.DataFrame.from_csv(os.path.join(FOLDER_CSV, csv_filename))
+        df = pd.read_csv(os.path.join(FOLDER_CSV, csv_filename))
         y = df['label_valence']
     elif task_name == 'emoMusic_a':
         csv_filename = '{}.csv'.format('emoMusic')
-        df = pd.DataFrame.from_csv(os.path.join(FOLDER_CSV, csv_filename))
+        df = pd.read_csv(os.path.join(FOLDER_CSV, csv_filename))
         y = df['label_arousal']
     else:
-        y = pd.DataFrame.from_csv(os.path.join(FOLDER_CSV, csv_filename))['label']
+        y = pd.read_csv(os.path.join(FOLDER_CSV, csv_filename))['label']
     return x, y
 
 
@@ -177,7 +178,7 @@ def cross_validate(featnames, tasknames, cvs, classifiers, gps, logger, n_jobs, 
 def get_cv_jamendo():
     task_name = 'jamendo_vd'
     csv_filename = '{}.csv'.format(task_name)
-    df = pd.DataFrame.from_csv(os.path.join(FOLDER_CSV, csv_filename))
+    df = pd.read_csv(os.path.join(FOLDER_CSV, csv_filename))
     splits = 0 * np.array([df['category'] == 'train']).astype(int) \
              + 0 * np.array([df['category'] == 'valid']).astype(int) \
              + 1 * np.array([df['category'] == 'test']).astype(int)
@@ -191,7 +192,7 @@ def get_cv_jamendo():
 def get_cv_urbansound():
     task_name = 'urbansound'
     csv_filename = '{}.csv'.format(task_name)
-    df = pd.DataFrame.from_csv(os.path.join(FOLDER_CSV, csv_filename))
+    df = pd.read_csv(os.path.join(FOLDER_CSV, csv_filename))
     ps = PredefinedSplit(df['fold'])
     return ps
 
@@ -223,8 +224,9 @@ def do_task_svm(task_idx, logger, n_jobs, which_emo='all'):
     """
     assert 1 <= task_idx <= 6
 
-    tasknames_cl = ['ballroom_extended', 'gtzan_genre', 'gtzan_speechmusic',
-                    'jamendo_vd', 'urbansound']
+    #tasknames_cl = ['ballroom_extended', 'gtzan_genre', 'gtzan_speechmusic',
+    #                'jamendo_vd', 'urbansound']
+    tasknames_cl = ['gtzan_genre', 'gtzan_speechmusic']
     cvs_cl = [10, 10, 10, get_cv_jamendo(), get_cv_urbansound()]
 
     is_classification = True
@@ -265,7 +267,7 @@ def do_task_svm(task_idx, logger, n_jobs, which_emo='all'):
     four_layers = [range(4), range(1, 5)]
     five_layers = [range(5)]
 
-    # all_layers = five_layers + four_layers + three_layers + two_layers + one_layers  # 1, 2, 10, 10, 5
+    all_layers = five_layers + four_layers + three_layers + two_layers + one_layers  # 1, 2, 10, 10, 5
     for mid_layer in all_layers:
         cross_validate(['mine'], tasknames, cvs, classifiers, gps, logger, n_jobs, mid_layer=mid_layer)
     # MFCC
@@ -277,7 +279,7 @@ def main_all():
     n_cpu = multiprocessing.cpu_count()
     n_jobs = int(n_cpu * 0.8)
     
-    task_idxs = range(1, 7)
+    task_idxs = range(2, 4)
     for task_idx in task_idxs:
         logger = get_logger(task_idx)
         do_task_svm(task_idx, logger, n_jobs)
